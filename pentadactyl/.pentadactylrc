@@ -1,0 +1,19 @@
+set showtabline=never
+
+map -b j 8j
+map -b k 8k
+map -b h 8h
+map -b l 8l
+
+set hintkeys=asdflkj
+hi -a Hint font-size: 9pt !important;
+
+set incfind
+set hlfind
+set findcase=smart
+
+colorscheme solarized-dark
+"colorscheme gruvbox-dark
+
+hi FontFixed -a font-size:15px !important;
+

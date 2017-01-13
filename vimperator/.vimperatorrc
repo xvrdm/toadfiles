@@ -1,0 +1,13 @@
+noremap j 8j
+noremap k 8k
+noremap h 8h
+noremap l 8l
+
+set hintchars=asdflkj
+
+set hlsearch
+set incsearch
+
+colorscheme solarized_dark
+
+
