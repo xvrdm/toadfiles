@@ -30,7 +30,7 @@ font pango:System San Francisco Display 11
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec gnome-terminal --hide-menubar 
+bindsym $mod+Return exec i3-sensible-terminal 
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -43,7 +43,7 @@ bindsym $mod+d exec rofi -show run -lines 3 -eh 2 -width 100 -padding 400 -opaci
 
 # gaps
 gaps inner 10 
-#gaps outer 5
+gaps outer 0
 smart_gaps on
 smart_borders no_gaps
 
@@ -111,13 +111,13 @@ bindsym $mod+minus scratchpad show
 set $workspace1 "1:"
 set $workspace2 "2:"
 set $workspace3 "3:"
-set $workspace10 "10:Music"
+set $workspace10 ""
 
 
 # switch to workspace
 bindsym $mod+1 workspace $workspace1 
 bindsym $mod+2 workspace $workspace2
-bindsym $mod+3 workspace $workspace3
+bindsym $mod+3 workspace 3
 bindsym $mod+4 workspace 4
 bindsym $mod+5 workspace 5
 bindsym $mod+6 workspace 6
@@ -198,28 +198,29 @@ client.urgent           $urgent-bg-color    $urgent-bg-color   $text-color      
 
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
-bar {
-        #status_command i3blocks -c $HOME/dtfiles/i3/i3blocks.conf
-        status_command $HOME/dtfiles/i3/i3conky
-        tray_output primary
-	strip_workspace_numbers yes
-	position top
+#bar {
+#        #status_command i3blocks -c $HOME/toadfiles/i3/i3blocks.conf
+#        status_command $HOME/toadfiles/i3/i3conky
+#        tray_output primary
+#	strip_workspace_numbers yes
+#	position top
+#
+#	colors {
+#		background $bg-color
+#	    	separator #757575
+#		#                  border             background         text
+#		focused_workspace  $bg-color          $bg-color          $text-color
+#		inactive_workspace $inactive-bg-color $inactive-bg-color $inactive-text-color
+#		urgent_workspace   $urgent-bg-color   $urgent-bg-color   $text-color
+#	}
+#}
 
-	colors {
-		background $bg-color
-	    	separator #757575
-		#                  border             background         text
-		focused_workspace  $bg-color          $bg-color          $text-color
-		inactive_workspace $inactive-bg-color $inactive-bg-color $inactive-text-color
-		urgent_workspace   $urgent-bg-color   $urgent-bg-color   $text-color
-	}
-}
+bindsym $mod+Shift+p exec $HOME/toadfiles/i3/lock 
 
-bindsym $mod+Shift+p exec $HOME/dtfiles/i3/lock 
-
-exec_always sh $HOME/dtfiles/i3/fehbg
+exec_always sh $HOME/toadfiles/i3/fehbg
 exec xrandr --output eDP1 --primary
 exec compton -f 
+exec_always --no-startup-id $HOME/toadfiles/i3/polybar/launch.sh
 exec_always setxkbmap -option caps:super
 #exec --no-startup-id gnome-settings-daemon
 exec --no-startup-id nm-applet
@@ -230,9 +231,9 @@ bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume 1 +5% #i
 bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume 1 -5% #decrease sound volume
 bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute 1 toggle # mute sound
 
-# Sreen brightness controls
+# Screen brightness controls
 bindsym XF86MonBrightnessUp exec xbacklight -inc 20 # increase screen brightness
-bindsym XF86MonBrightnessDown exec xbacklight -dec 20 # decrease screen brightness
+bindsym XF86MonBrightnessDown exec xbacklight -dec 10 # decrease screen brightness
 
 # Touchpad controls
 # bindsym XF86TouchpadToggle exec /some/path/toggletouchpad.sh # toggle touchpad
@@ -245,11 +246,11 @@ bindsym XF86AudioPrev exec playerctl previous
 
 set $mode_system System (l) lock, (e) logout, (s) suspend, (h) hibernate, (r) reboot, (Shift+s) shutdown
 mode "$mode_system" {
-    bindsym l exec --no-startup-id $HOME/dtfiles/i3/i3exit lock, mode "default"
-    bindsym e exec --no-startup-id $HOME/dtfiles/i3/i3exit logout, mode "default"
-    bindsym s exec --no-startup-id $HOME/dtfiles/i3/i3exit suspend, mode "default"
-    bindsym h exec --no-startup-id $HOME/dtfiles/i3/i3exit hibernate, mode "default"
-    bindsym r exec --no-startup-id $HOME/dtfiles/i3/i3exit reboot, mode "default"
+    bindsym l exec --no-startup-id $HOME/toadfiles/i3/i3exit lock, mode "default"
+    bindsym e exec --no-startup-id $HOME/toadfiles/i3/i3exit logout, mode "default"
+    bindsym s exec --no-startup-id $HOME/toadfiles/i3/i3exit suspend, mode "default"
+    bindsym h exec --no-startup-id $HOME/toadfiles/i3/i3exit hibernate, mode "default"
+    bindsym r exec --no-startup-id $HOME/toadfiles/i3/i3exit reboot, mode "default"
     bindsym Shift+s exec --no-startup-id i3exit shutdown, mode "default"
 
     # back to normal: Enter or Escape

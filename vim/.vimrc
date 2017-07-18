@@ -20,6 +20,10 @@ Plugin 'dhruvasagar/vim-table-mode'
 Plugin 'easymotion/vim-easymotion'
 Plugin 'junegunn/goyo.vim'
 Plugin 'junegunn/limelight.vim'
+Plugin 'godlygeek/tabular'
+Plugin 'plasticboy/vim-markdown'
+Plugin 'christoomey/vim-tmux-navigator'
+Plugin 'edkolev/tmuxline.vim'
 
 " Tested plugins
 "Plugin 'Valloric/YouCompleteMe'
@@ -41,6 +45,10 @@ let g:airline_powerline_fonts = 1
   nnoremap <C-K> <C-W><C-K>
   nnoremap <C-L> <C-W><C-L>
   nnoremap <C-H> <C-W><C-H>
+
+  "natural split
+  set splitbelow
+  set splitright
   " }}}
   " Status Line {{{
   set laststatus=2 " Always show status line
@@ -113,6 +121,7 @@ augroup END
 " Markdown file settings - {{{
 autocmd BufNewFile,BufReadPost *.md set filetype=markdown
 let g:markdown_fenced_languages = ['html', 'python', 'bash=sh']
+let g:vim_markdown_folding_style_pythonic = 1
 " }}}
 " Vimscript file settings - {{{
 augroup filetype_vim
@@ -159,6 +168,8 @@ set cursorline
 set colorcolumn=80
 "}}}
 " Colorscheme {{{
+set t_Co=256
+set t_ut=
 syntax on
 colorscheme seoul256 
 colors seoul256 

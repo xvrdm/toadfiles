@@ -1,6 +1,6 @@
 #!/bin/sh
 lock() {
-    $HOME/dtfiles/i3/lock
+    $HOME/toadfiles/i3/lock
 }
 
 case "$1" in

@@ -1,0 +1,263 @@
+;=====================================================
+;
+;   To learn more about how to configure Polybar
+;   go to https://github.com/jaagr/polybar
+;
+;   The README contains alot of information
+;
+;=====================================================
+
+[colors]
+transparent = #00000000
+background = #2F343F
+foreground = #F5F6F7
+arcfg = #414A59
+archl = #5294E2
+arcred = #CC575D
+black = #7c6f64
+dgrey = #928374
+dred = #cc241d
+red = #fb4934
+dgreen = #98971a
+green = #b8bb26
+dyellow = #d79921
+yellow = #fabd2f
+dblue = #458588
+blue = #83a598
+dmagenta = #b16286
+magenta = #d3869b
+dcyan = #689d6a
+cyan = #8ec07c
+lgrey = #a89984
+white = #ebdbb2
+
+tblack = #ff2f343f
+tred = #80fb4934
+tgreen = #80b8bb26
+tyellow = #80fabd2f
+tblue = #8083a598
+tmagenta = #80d3869b
+tcyan = #808ec07c
+twhite = #80ebdbb2
+tgrey = #80a89984
+
+
+[global/wm]
+margin-top = 5 
+margin-bottom = 5
+
+[bar/top]
+monitor = eDP-1
+width = 100%
+height = 30 
+offset-x = 0
+offset-y = 0
+
+locale = de_DE.UTF-8
+
+background = ${colors.background}
+foreground = ${colors.foreground}
+
+font-0 = Roboto:size=10:fontformat=truetype
+font-1 = FontAwesome:size=10;0
+
+;modules-left = i3 updates xwindow
+modules-left = i3 xwindow
+modules-center = date
+;modules-right = spotify mediaplayer backlight volumeintel volumeasus temperature memory battery date
+;modules-right = spotify mediaplayer backlight volumeintel battery date
+modules-right = network eth cpu backlight volumeintel battery 
+
+tray-position = right
+tray-padding = 1
+tray-background = ${colors.archl}
+tray-transparent = false
+
+underline-size = 3
+
+spacing = 1
+padding-left = 0
+padding-right = 2
+module-margin-left = 1
+module-margin-right = 1
+
+[module/xwindow]
+type = internal/xwindow
+label =   %title:0:60:...%
+
+[module/i3]
+type = internal/i3
+strip-wsnumbers = true
+
+ws-icon-0 = 1
+ws-icon-1 = 2
+ws-icon-2 = 3
+ws-icon-3 = 4
+ws-icon-4 = 5
+
+format = <label-state> <label-mode>
+
+label-mode-foreground = ${colors.background}
+label-mode-background = ${colors.dyellow}
+label-mode-padding = 0
+
+label-focused-foreground = ${colors.foreground}
+label-focused-background = ${colors.archl}
+label-focused-underline = ${colors.foreground}
+label-focused-padding = 2
+
+label-unfocused-padding = 2
+
+label-urgent-background = ${colors.tred}
+label-urgent-underline = ${colors.dred}
+label-urgent-padding = 2
+
+label-visible-background = ${colors.tgreen}
+label-visible-underline = ${colors.dgreen}
+label-visible-padding = 2
+
+[module/cpu]
+type = internal/cpu
+
+; Seconds to sleep between updates
+interval = 0.5
+
+format = <label>
+label = %percentage%%
+format-prefix = "  "
+format-prefix-foreground = ${colors.archl}
+format-underline = ${colors.archl}
+format-padding = 1
+
+[module/eth]
+type = internal/network
+interface = wlp2s0
+interval = 3.0
+ 
+format-connected-underline = ${colors.archl}
+format-connected-prefix = "  "
+format-connected-prefix-foreground = ${colors.archl}
+label-connected = %local_ip%
+format-connected-padding = 1
+ 
+format-disconnected =
+format-disconnected-underline = ${self.format-connected-underline}
+
+[module/network]
+type = internal/network
+interface = wlp2s0
+
+; Seconds to sleep between updates
+; Default: 1
+interval = 3.0
+
+label-connected = %downspeed:9% %upspeed:9%
+
+; Accumulate values from all interfaces
+; when querying for up/downspeed rate
+; Default: false
+accumulate-stats = true
+
+[module/backlight]
+type = internal/xbacklight
+format = <label> 
+format-prefix = "  "
+format-prefix-foreground = ${colors.archl}
+format-underline = ${colors.archl}
+format-padding = 1
+label = %percentage%
+
+[module/spotify]
+type = custom/script
+exec = BLOCK_INSTANCE=spotify $HOME/.bin/mediaplayer
+label =   %output:0:30:...%
+format-foreground = #aacf00
+format-background = #80aacf00
+format-underline = #aacf00
+format-padding = 2
+interval = 5
+exec-if = pgrep -x spotify
+
+[module/mediaplayer]
+type = custom/script
+exec = BLOCK_INSTANCE=DeaDBeeF $HOME/.bin/mediaplayer
+label =   %output:0:30:...%
+
+format-underline = ${colors.dblue}
+format-padding = 2
+interval = 5
+format-background = ${colors.tblue}
+exec-if = pgrep deadbeef
+
+[module/volumeintel]
+type = internal/volume
+format-volume = <ramp-volume> <label-volume>
+master-mixer = Master
+label-muted =  muted
+
+ramp-volume-0 = 
+ramp-volume-1 = 
+ramp-volume-2 = 
+format-volume-underline = ${colors.archl}
+format-volume-padding = 1
+mapping = true
+
+;[module/temperature]
+;type = custom/script
+;exec = $HOME/.bin/temperature.sh
+;interval = 10
+;label =   %output%
+;format-underline = ${colors.dred}
+;format-padding = 2
+;format-background = ${colors.tred}
+
+[module/date]
+type = internal/date
+interval = 2
+
+date = "%d.%m.%Y"
+date-alt = "%A, %d. %B"
+
+time = "%H:%M"
+time-alt = "%H:%M:%S"
+
+format-prefix = " "
+format-prefix-foreground = ${colors.archl}
+format-underline = ${colors.archl} 
+format-padding = 4
+label = "%{A3:gsimplecal:}%date% | %time%%{A}"
+
+format-background = ${colors.arcfg}
+
+[module/battery]
+type = internal/battery
+battery = BAT0
+adapter = AC
+full-at = 99
+
+format-charging = <animation-charging> <label-charging>
+
+format-discharging = <ramp-capacity> <label-discharging>
+label-discharging = %percentage% (%time%)
+
+format-full-prefix = "  "
+format-prefix-foreground = ${colors.archl}
+format-underline = ${colors.archl}
+format-padding = 2
+
+ramp-capacity-0 = 
+ramp-capacity-1 = 
+ramp-capacity-2 = 
+ramp-capacity-3 = 
+ramp-capacity-4 = 
+
+animation-charging-0 = 
+animation-charging-1 = 
+animation-charging-2 = 
+animation-charging-3 = 
+animation-charging-4 = 
+animation-charging-framerate = 750
+
+format-background = ${colors.tblue}
+
+; vim:ft=dosini

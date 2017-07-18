@@ -1,0 +1,131 @@
+[colors]
+transparent = #00000000
+background = #2F343F
+foreground = #F5F6F7
+arcfg = #414A59
+archl = #5294E2
+arcred = #CC575D
+
+[global/wm]
+margin-top = 5 
+margin-bottom = 15
+
+[bar/top]
+monitor = eDP-1
+width = 100%
+height = 30
+offset-x = 0
+offset-y = 0
+override-redirect = false
+
+locale = de_DE.UTF-8
+
+background = ${colors.background}
+foreground = ${colors.foreground}
+
+font-0 = SFNS Display:size=12:fontformat=truetype
+font-1 = FontAwesome:size=12;-2
+
+modules-left = i3 
+modules-center = xwindow
+modules-right = eth battery
+
+underline-size = 3
+
+spacing = 0
+padding-left = 2
+padding-right = 2
+module-margin-left = 1
+module-margin-right = 1
+
+tray-position = right
+tray-padding = 1
+tray-background = ${colors.background}
+tray-transparent = false
+
+[module/xwindow]
+type = internal/xwindow
+label =   %title:0:60:...%
+label-padding = 2
+
+[module/i3]
+type = internal/i3
+strip-wsnumbers = true
+
+ws-icon-0 = 1
+ws-icon-1 = 2
+ws-icon-2 = 3;
+ws-icon-3 = 4;
+ws-icon-4 = 5;
+
+format = <label-state> <label-mode>
+index-sort = true
+wrapping-scroll = true
+pin-workspaces = true
+
+label-mode = %mode%
+label-mode-padding = 5
+label-mode-foreground = #ffffff
+
+label-unfocused = %name%
+label-unfocused-foreground = #555555
+label-unfocused-padding = 2
+
+label-visible = %name%
+label-visible-foregroud = #888888
+label-visible-padding = 2
+
+label-focused = %name%
+label-focused-foreground = ${colors.archl}
+label-focused-background = ${colors.arcfg}
+label-focused-underline = ${colors.archl}
+label-focused-padding = 2 
+
+label-urgent = %name%
+label-urgent-padding = 2
+
+[module/eth]
+type = internal/network
+interface = wlp2s0
+interval = 3.0
+ 
+format-connected-underline = ${colors.archl}
+format-connected-prefix = "  "
+format-connected-prefix-foreground = ${colors.archl}
+label-connected = %local_ip%
+format-connected-padding = 1
+ 
+format-disconnected =
+format-disconnected-underline = ${self.format-connected-underline}
+
+[module/battery]
+type = internal/battery
+battery = BAT0
+adapter = AC
+full-at = 99
+
+format-charging = <animation-charging> <label-charging>
+
+format-discharging = <ramp-capacity> <label-discharging>
+label-discharging = %percentage% (%time%)
+
+format-full-prefix = "  "
+format-full-prefix-foreground = ${colors.archl}
+format-full-underline = ${colors.archl}
+format-full-padding = 1
+format-padding = 2
+
+ramp-capacity-0 = 
+ramp-capacity-1 = 
+ramp-capacity-2 = 
+ramp-capacity-3 = 
+ramp-capacity-4 = 
+
+animation-charging-0 = 
+animation-charging-1 = 
+animation-charging-2 = 
+animation-charging-3 = 
+animation-charging-4 = 
+animation-charging-framerate = 750
+
+format-background = ${colors.tblue}
