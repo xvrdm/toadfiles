@@ -20,6 +20,6 @@ sudo groupadd docker
 sudo usermod -aG docker $USER
 
 mkdir -p $HOME/tmp
-curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m` > $HOME/tmp/docker-compose 
+curl -L https://github.com/docker/compose/releases/download/1.14.0/docker-compose-`uname -s`-`uname -m` > $HOME/tmp/docker-compose 
 sudo mv $HOME/tmp/docker-compose /usr/local/bin/
 sudo chmod +x /usr/local/bin/docker-compose
