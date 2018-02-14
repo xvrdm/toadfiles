@@ -1,0 +1,513 @@
+#+TITLE: Emacs configuration
+#+DESCRIPTION: An org-babel based emacs configuration
+#+LANGUAGE: en
+#+PROPERTY: results silent
+
+* Config
+** Variables
+*** Colors
+#+BEGIN_SRC emacs-lisp
+(setq visual-selected-background-color "#2c2c2c")
+(setq background-color "#171717")
+#+END_SRC
+** Initial setup
+*** Remove startup screen and start in maximized mode
+#+BEGIN_SRC emacs-lisp
+(custom-set-variables
+ '(inhibit-startup-screen t))
+ ;;'(initial-frame-alist (quote ((fullscreen . maximized)))))
+#+END_SRC
+
+*** Remove top bars
+The menu bar can still be accessed with mouse 3 as a popup menu.
+#+BEGIN_SRC emacs-lisp
+(menu-bar-mode -99)
+(tool-bar-mode -1)
+(toggle-scroll-bar -1)
+#+END_SRC
+     
+*** Visual lines
+#+BEGIN_SRC emacs-lisp
+(global-visual-line-mode t)
+#+END_SRC
+*** Stop emacs unwanted open
+Source: [fn:4]
+
+Makes *scratch* empty.
+#+BEGIN_SRC emacs-lisp
+(setq initial-scratch-message "")
+#+END_SRC
+
+Removes *scratch* from buffer after the mode has been set.
+#+BEGIN_SRC emacs-lisp
+(defun remove-scratch-buffer ()
+  (if (get-buffer "*scratch*")
+      (kill-buffer "*scratch*")))
+(add-hook 'after-change-major-mode-hook 'remove-scratch-buffer)
+#+END_SRC
+
+Removes *messages* from the buffer.
+#+BEGIN_SRC emacs-lisp
+(setq-default message-log-max nil)
+(kill-buffer "*Messages*")
+#+END_SRC
+
+Removes *Completions* from buffer after you've opened a file.
+#+BEGIN_SRC emacs-lisp
+(add-hook 'minibuffer-exit-hook
+      '(lambda ()
+         (let ((buffer "*Completions*"))
+           (and (get-buffer buffer)
+                (kill-buffer buffer)))))
+#+END_SRC
+
+*** Copy/Pasting
+#+BEGIN_SRC emacs-lisp
+(use-package simpleclip
+    :ensure t
+    :config
+    (simpleclip-mode 1))
+#+END_SRC
+
+*** Fix Path
+https://github.com/purcell/exec-path-from-shell
+#+BEGIN_SRC emacs-lisp
+(use-package exec-path-from-shell 
+    :ensure t
+    :config
+    (setq exec-path-from-shell-check-startup-files nil)
+    (exec-path-from-shell-initialize))
+#+END_SRC
+
+** EVIL
+*** Enable EVIL mode
+#+BEGIN_SRC emacs-lisp
+(use-package evil
+  :ensure t
+  :config
+  (evil-mode 1)
+
+  (use-package powerline-evil
+    :ensure t
+    :config
+    (powerline-evil-vim-color-theme)
+    (display-time-mode 1))
+
+  (use-package evil-leader
+    :ensure t
+    :config
+    (global-evil-leader-mode)
+    (evil-leader/set-leader "<SPC>")
+    (evil-leader/set-key
+      "f" 'helm-projectile-find-file
+      "F" 'helm-projectile-ag
+      "q" 'evil-quit
+      "w" 'save-buffer
+      ;;"t" 'neotree-toggle
+      "t" 'dired-sidebar-toggle-sidebar
+      "j" 'flycheck-next-error
+      "k" 'flycheck-previous-error
+      "," 'helm-mini
+      "e" 'helm-find-files
+      "p" 'org-pomodoro
+    )))
+#+END_SRC
+
+*** EVIL Line movements
+Evil has the same problem as Vim when browsing with j/k long wrapped lines; it jumps the entire “real” line instead of the visual line. The command below fix this:
+
+#+BEGIN_SRC emacs-lisp
+(use-package evil-org
+    :ensure t
+    :after org
+    :config
+    (add-hook 'org-mode-hook 'evil-org-mode)
+    (add-hook 'evil-org-mode-hook
+    (lambda () (evil-org-set-key-theme))))
+
+(define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
+(define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
+#+END_SRC
+
+Preserve tab key when using emacs-org-mode in terminal.
+https://www.reddit.com/r/emacs/comments/47gi1v/org_mode_tab_key_binding_broken_using_terminal/
+#+BEGIN_SRC emacs-lisp
+(add-hook 'org-mode-hook
+  (lambda ()
+    (define-key evil-normal-state-map (kbd "TAB") 'org-cycle))) 
+#+END_SRC
+
+Page-up/Page-down scroll with =C-i= and =C-u=.
+
+#+BEGIN_SRC emacs-lisp
+(define-key evil-normal-state-map (kbd "C-u") (lambda ()
+                    (interactive)
+                    (evil-scroll-up nil)))
+(define-key evil-normal-state-map (kbd "C-i") (lambda ()
+                        (interactive)
+                        (evil-scroll-down nil)))
+#+END_SRC
+
+ 
+*** EVIL Window movements
+     
+Easily jump between windows.
+
+#+BEGIN_SRC emacs-lisp
+(define-key evil-normal-state-map (kbd "C-j") 'windmove-down)
+(define-key evil-normal-state-map (kbd "C-k") 'windmove-up)
+(define-key evil-normal-state-map (kbd "C-h") 'windmove-left)
+(define-key evil-normal-state-map (kbd "C-l") 'windmove-right)
+#+END_SRC
+     
+Toggle horizontal/vertical split with =C-x \=. Sources: [fn:1], [fn:2] 
+
+#+BEGIN_SRC emacs-lisp
+(defun toggle-window-split ()
+  (interactive)
+  (if (= (count-windows) 2)
+      (let* ((this-win-buffer (window-buffer))
+	     (next-win-buffer (window-buffer (next-window)))
+	     (this-win-edges (window-edges (selected-window)))
+	     (next-win-edges (window-edges (next-window)))
+	     (this-win-2nd (not (and (<= (car this-win-edges)
+					 (car next-win-edges))
+				     (<= (cadr this-win-edges)
+					 (cadr next-win-edges)))))
+	     (splitter
+	      (if (= (car this-win-edges)
+		     (car (window-edges (next-window))))
+		  'split-window-horizontally
+		'split-window-vertically)))
+	(delete-other-windows)
+	(let ((first-win (selected-window)))
+	  (funcall splitter)
+	  (if this-win-2nd (other-window 1))
+	  (set-window-buffer (selected-window) this-win-buffer)
+	  (set-window-buffer (next-window) next-win-buffer)
+	  (select-window first-win)
+	  (if this-win-2nd (other-window 1))))))
+(global-set-key (kbd "C-x \\") 'toggle-window-split)
+#+END_SRC
+
+** Dired-Sidebar
+#+BEGIN_SRC emacs-lisp
+(use-package dired-sidebar
+  :ensure t
+  :commands (dired-sidebar-toggle-sidebar)
+  :config
+  (setq dired-sidebar-subtree-line-prefix " .")
+  (cond
+   ((eq system-type 'darwin)
+    (if (display-graphic-p)
+     (setq dired-sidebar-theme 'icons)
+     (setq dired-sidebar-theme 'nerd)))
+   ((eq system-type 'windows-nt)
+    (setq dired-sidebar-theme 'nerd))
+   (:default
+    (setq dired-sidebar-theme 'nerd)))
+
+  (setq dired-sidebar-use-term-integration t)
+  (use-package all-the-icons-dired
+    ;; M-x all-the-icons-install-fonts
+    :ensure t
+    :commands (all-the-icons-dired-mode)))
+;;(use-package neotree 
+;;  :ensure t
+;;  :config
+;;  (setq neo-theme (if (display-graphic-p) 'icons 'arrow)))
+#+END_SRC
+
+If you use evil-mode, by default some of evil key bindings conflict with neotree-mode keys.
+
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'normal neotree-mode-map (kbd "TAB") 'neotree-enter)
+(evil-define-key 'normal neotree-mode-map (kbd "SPC") 'neotree-quick-look)
+(evil-define-key 'normal neotree-mode-map (kbd "q") 'neotree-hide)
+(evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-enter)
+#+END_SRC
+*** Icons
+#+BEGIN_SRC emacs-lisp
+(use-package all-the-icons
+  :ensure t
+  :config (all-the-icons-insert-icons-for 'octicon))
+#+END_SRC
+     
+** Fzf
+#+BEGIN_SRC emacs-lisp
+;;(use-package fzf
+;;  :ensure t)
+#+END_SRC
+** Helm and Projectile
+#+BEGIN_SRC emacs-lisp
+(use-package helm
+  :ensure t
+  :config (helm-mode t)
+  (set-face-attribute 'helm-selection nil 
+     :background visual-selected-background-color
+     :foreground "white"))
+
+(use-package projectile
+  :ensure projectile
+  :config (projectile-global-mode t))
+
+(use-package helm-projectile
+  :ensure t)
+
+(use-package helm-ag
+  :ensure t)
+
+(defun my/helm-fonts ()
+  (face-remap-add-relative 'default :family "Fira Code"))
+
+(add-hook 'helm-major-mode-hook #'my/helm-fonts)
+#+END_SRC
+
+Use tab to complete dir path in ='helm-find-files=. Via https://github.com/emacs-helm/helm/issues/1630.
+
+#+BEGIN_SRC emacs-lisp
+(define-key helm-find-files-map "\t" 'helm-execute-persistent-action)
+#+END_SRC
+
+Make sure <escape> works to exit helm buffers.
+
+#+BEGIN_SRC emacs-lisp
+(bind-key "<escape>" 'isearch-cancel isearch-mode-map)
+(bind-key "<escape>" 'helm-keyboard-quit helm-map)
+(bind-key "<escape>" 'helm-keyboard-quit helm-comp-read-map)
+#+END_SRC
+
+Add auto-complete package to the mix.
+
+#+BEGIN_SRC emacs-lisp
+(use-package auto-complete
+  :ensure t
+  :init
+  (ac-config-default))
+#+END_SRC
+
+Using Hydra to get evil binding in helm.
+
+#+BEGIN_SRC emacs-lisp
+(use-package hydra
+  :ensure t
+  :config
+  (defhydra helm-like-unite (:hint nil
+                             :color pink)
+   ;; arrows
+   ("h" helm-beginning-of-buffer)
+   ("j" helm-next-line)
+   ("k" helm-previous-line)
+   ("l" helm-end-of-buffer)
+   ;; beginning/end
+   ("g" helm-beginning-of-buffer)
+   ("G" helm-end-of-buffer)
+   ;; scroll
+   ("K" helm-scroll-other-window-down)
+   ("J" helm-scroll-other-window)
+   ;; mark
+   ("m" helm-toggle-visible-mark)
+   ("t" helm-toggle-all-marks)
+   ("U" helm-unmark-all)
+   ;; exit
+   ("<escape>" keyboard-escape-quit "" :exit t)
+   ("o" keyboard-escape-quit :exit t)
+   ("i" nil)))
+(define-key helm-map (kbd "<escape>") 'helm-like-unite/body)
+#+END_SRC
+** ESS
+#+BEGIN_SRC emacs-lisp
+;;(add-to-list 'load-path "/Users/xadam/.emacs.d/ESS/lisp/")
+;;(load "ess-site")
+#+END_SRC
+** Org-Mode
+#+BEGIN_SRC emacs-lisp
+(setq org-src-fontify-natively t)
+
+
+(use-package org-pomodoro
+  :ensure t)
+
+(use-package org-bullets
+  :ensure t
+  :config
+    (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+
+(setq org-todo-keywords
+  '((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)")))
+
+(org-babel-do-load-languages
+  'org-babel-load-languages
+  '((R . t)))
+
+(defun nolinum ()
+  (global-linum-mode 0)
+)
+(add-hook 'org-mode-hook 'nolinum)
+
+(defun set-buffer-variable-pitch ()
+  (interactive)
+  (variable-pitch-mode t)
+  (setq line-spacing 3)
+  (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-link nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block-background nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block-begin-line nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block-end-line nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-date nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-special-keyword nil :inherit 'fixed-pitch)
+  )
+
+(add-hook 'org-mode-hook 'set-buffer-variable-pitch)
+
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(fixed-pitch ((t (:weight normal :height 160 :family "Fira Code"))))
+ '(variable-pitch ((t (:weight normal :height 180 :family "Open Sans"))))
+ '(org-level-1 ((t (:inherit outline-1 :family "Rubik" :foreground "#F5F7FA" :height 1.5))))
+ '(org-level-2 ((t (:inherit outline-2 :family "Rubik" :foreground "#EBCB8B" :height 1.3))))
+ '(org-level-3 ((t (:inherit outline-3 :family "Rubik" :foreground "#D08770" :height 1.2))))
+ '(org-level-4 ((t (:inherit outline-4 :family "Rubik" :foreground "#8FBCBB" :height 1.1))))
+ '(org-level-5 ((t (:inherit outline-5 :family "Rubik" :foreground "systemPinkColor" :height 1.0)))))
+#+END_SRC
+    
+** Markdown
+#+BEGIN_SRC emacs-lisp 
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "multimarkdown")
+  :config
+    (use-package evil-markdown
+    :load-path "plugins/evil-markdown/"
+    :ensure t))
+
+#+END_SRC
+** Python setup
+#+BEGIN_SRC emacs-lisp
+(use-package elpy
+  :ensure t
+  :init (elpy-enable)
+  :config
+
+  (use-package flycheck
+    :ensure t
+    :config
+      (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+      (add-hook 'elpy-mode-hook 'flycheck-mode)
+      (setq flycheck-indication-mode nil)
+      (setq flycheck-display-errors-delay nil)
+      (setq flycheck-idle-change-delay 2)
+      (global-flycheck-mode))
+
+  (use-package py-autopep8
+    :ensure t
+    :config
+    (add-hook 'elpy-mode-hook 'py-autopep8-enable-on-save)))
+#+END_SRC
+     
+** Visual enhancements
+*** Beacon
+
+#+BEGIN_SRC emacs-lisp
+(use-package beacon
+  :ensure t
+  :config
+  (beacon-mode 1)
+)
+#+END_SRC
+
+*** Line numbers
+#+BEGIN_SRC emacs-lisp
+(global-linum-mode 1)
+(defun configure-linum-colors ()
+    (set-face-foreground 'linum "#555555"))
+(configure-linum-colors)
+(setq linum-format " %4d ")
+#+END_SRC
+    
+hlinum-mode highlights the current line for linum
+
+#+BEGIN_SRC emacs-lisp
+(use-package hlinum
+  :ensure t)
+(set-face-foreground 'linum-highlight-face "white")
+(set-face-background 'linum-highlight-face "#2c2c2c")
+(hlinum-activate)
+#+END_SRC
+    
+*** Font with ligatures
+#+BEGIN_SRC emacs-lisp
+(set-default-font "Fira Code 16")
+#+END_SRC
+*** Enable minimap and smooth scrolling 
+#+BEGIN_SRC emacs-lisp
+;;(use-package sublimity
+;;  :ensure t
+;;  :config
+;;  (sublimity-mode 1)
+;;
+;;  (use-package sublimity-map
+;;  :ensure t
+;;  :config
+;;  (sublimity-map-set-delay nil))
+;;  (use-package sublimity-scroll
+;;  :ensure t)
+;;  (use-package sublimity-attractive
+;;  :ensure t
+;;  :config
+;;  (setq sublimity-attractive-centering-width nil)
+;;  (sublimity-attractive-hide-bars)
+;;  (sublimity-attractive-hide-vertical-border)
+;;  (sublimity-attractive-hide-fringes))
+;;)
+#+END_SRC
+#
+*** Compatibility mode for terminal color
+#+BEGIN_SRC emacs-lisp
+(use-package color-theme-approximate
+  :ensure t
+  :config
+  (color-theme-approximate-on))
+#+END_SRC
+
+*** Enable Badger theme
+#+BEGIN_SRC emacs-lisp
+(setq my-theme 'nord)
+(setq nord-comment-brightness 15)
+(use-package nord-theme
+  :ensure t
+  :config
+  (load-theme my-theme t))
+
+;;(defun override-theme-defaults () 
+ ;; (set-face-attribute 'region nil 
+ ;;   :background visual-selected-background-color)
+ ;; (set-face-attribute 'linum nil 
+ ;;   :background background-color)
+ ;; (set-face-attribute 'fringe nil 
+ ;;   :background nil :foreground nil))
+;;(override-theme-defaults)
+#+END_SRC
+     
+* Footnotes
+
+[fn:1] Shortcut function to toggle windows split: https://www.emacswiki.org/emacs/ToggleWindowSplit
+
+[fn:2] Help with keymap for function: https://stackoverflow.com/questions/14881020/emacs-shortcut-to-switch-from-a-horizontal-split-to-a-vertical-split-in-one-move
+
+[fn:3] Helpers function for ibuffer: http://martinowen.net/blog/2010/02/03/tips-for-emacs-ibuffer.html
+
+[fn:4] Default settings to remove unwanted opens: https://unix.stackexchange.com/questions/19874/prevent-unwanted-buffers-from-opening
+ 
+
+
+     
